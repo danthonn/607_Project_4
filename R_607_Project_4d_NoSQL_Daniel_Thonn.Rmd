@@ -1,0 +1,142 @@
+---
+title: "R_Project_4_607_MongoDB_Daniel_Thonn"
+output: html_document
+course: R-607 CUNY MSDA program
+
+---
+
+** Assignment 607_Project_4: R_Project_4_607_MongoDB_Daniel_Thonn **
+
+Summary of Assignment
+This assignment involves migrating to MySQL and then to MongoDB
+
+This Assignment requires the following:
+
+1). R-Studio
+
+The following R-packages are used:
+1. library(RMySQL)
+2. library(sqldf)
+3. library(ggplot2)
+4. library(downloader)
+5. library(dplyr)
+6. library(knitr)
+7. library(mongolite)
+
+
+Steps to reproduce:
+1).Install MongoDB
+2).Run "C:\Program Files\MongoDB\Server\3.2\bin\mongod.exe" at the command line
+3).Run the R-Studio file: R_Project_4d_607_MongoDB_Daniel_Thonn.Rmd
+
+
+Setting up and Preparing the Environment
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load the libraries needed
+
+```{r, echo=TRUE}
+
+# Libraries for MySql
+library(RMySQL)
+library(sqldf)
+library(ggplot2)
+library(downloader)
+library(dplyr)
+library(knitr)
+
+```
+
+Load flights data into MySQL and examine the data
+
+```{r, echo=TRUE}
+
+#note: put in placeholders for user and password
+mydb = dbConnect(MySQL(), user='dthonn', password='1804', dbname='flights', host='localhost') 
+
+
+dbListTables(mydb)
+#[1] "airlines" "airports" "flights"  "planes"   "reviewer" "weather" 
+
+query_1 <- "select * from flights;"
+flights_1 <- dbGetQuery(mydb, query_1)
+nrow(flights_1)
+# [1] 336776
+
+# kable uses library(knitr)
+kable(head(flights_1))
+
+head(flights_1)
+#year month day dep_time dep_delay arr_time arr_delay carrier tailnum flight origin dest air_time distance hour minute
+#1 2013     1   1      517         2      830        11      UA  N14228   1545    EWR  IAH      227     1400    5     #17
+#2 2013     1   1      533         4      850        20      UA  N24211   1714    LGA  IAH      227     1416    5     #33
+#3 2013     1   1      542         2      923        33      AA  N619AA   1141    JFK  MIA      160     1089    5     #42
+#4 2013     1   1      544        -1     1004       -18      B6  N804JB    725    JFK  BQN      183     1576    5     #44
+#5 2013     1   1      554        -6      812       -25      DL  N668DN    461    LGA  ATL      116      762    6     #54
+#6 2013     1   1      554        -4      740        12      UA  N39463   1696    EWR  ORD      150      719    6     #54
+
+
+```
+
+Load the flights_1 data into a mongolite database - m_1
+
+```{r, echo=TRUE}
+
+# Library for Mongolite
+#install.packages("mongolite")
+library(mongolite)
+
+m_1 <- mongo(collection = "flights_1")
+if (m_1$count()>0)(m_1$drop())
+m_1$insert(flights_1)
+
+nrow(flights_1)
+#[1] 336776
+
+
+#Complete! Processed total of 336776 rows.
+#$nInserted
+#[1] 336776
+
+#$nMatched
+#[1] 0
+
+#$nRemoved
+#[1] 0
+
+#$nUpserted
+#[1] 0
+
+#$writeErrors
+#list()
+
+
+```
+
+View the mongodb data using mongolite
+
+
+```{r, echo=TRUE}
+# examine mongodb using mongolite
+
+#return count of records in m_1
+m_1$count()
+#[1] 336776
+
+# view distinct values of the dest column
+m_1$distinct("dest")
+
+
+```
+
+
+
+Conclusion:  I ran into some version incompatabilities in attempting to install rmongodb.  Therefore I switched over to mongolite and was able to load and view the data in MongoDB and compared it to the dataframe from the MySQL load and confirmed that the data matched. I found that the MongoDB database had to be started in order to use the mongolite program or an error would occur.
+
+ 
+
+
+**END**
